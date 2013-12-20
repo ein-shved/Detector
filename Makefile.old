@@ -1,0 +1,152 @@
+CC		= gcc
+CXX		= g++
+UIC		= uic-qt4
+LINK		= g++
+MOC		= moc-qt4
+QTINCLUDEPATH   = /usr/include/qt4
+QTSHAREPATH	= /usr/share/qt4/
+CCFLAGS		= -Wall -Werror $(DEFINES) $(USERFLAGS)
+CXXFLAGS	= -Wall -Werror $(DEFINES) $(USERFLAGS)
+LINKFLAGS	= -Wl,-O1 $(USERFLAGS)
+LIBS		= $(SUBLIBS) -L/usr/lib -lQtGui -lQtCore -llinear
+INCPATH		= -I$(QTSHAREPATH)/mkspecs/linux-g++ -I$(QTINCLUDEPATH)/QtCore \
+		  -I$(QTINCLUDEPATH)/QtGui -I$(QTINCLUDEPATH)
+OBJECTS		= src/FeatureVector/FeatureVector.o \
+		  src/FeatureVector/FeatureVectorImg.o \
+		  src/FeatureVector/FeatureVectorStd.o \
+		  src/FeatureVector/FeatureVectorHOG.o \
+		  src/FeatureVector/HOGImage.o \
+		  src/Examples/Examples.o \
+		  src/Examples/ExamplesImg.o \
+		  src/Examples/ExamplesStd.o \
+		  src/Model/Classifier.o \
+		  src/Model/ClassifierImg.o \
+		  src/Model/Trainer.o \
+		  src/Model/Bootstraper.o \
+		  src/Graphics/ResultView.o \
+		  src/Graphics/moc_ResultView.o \
+		  src/main.o
+TGHEADERS	= src/Graphics/ui_ResultView.h
+TGSOURSES	=  src/Graphics/moc_ResultView.cpp
+TARGET		=  bin/detector
+TESTS		= testFV testExamples
+
+
+
+all: $(TARGET) $(TGHEADERS) $(TGSOURSES) $(OBJECTS)
+FORCE: ;
+
+src/FeatureVector/FeatureVector.o: 	src/FeatureVector/FeatureVector.cpp \
+					src/FeatureVector/FeatureVector.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) $< -o $@
+
+src/FeatureVector/HOGImage.o : 	src/FeatureVector/HOGImage.cpp \
+				src/FeatureVector/HOGImage.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) $< -o $@
+src/FeatureVector/FeatureVectorImg.o: 	src/FeatureVector/FeatureVectorImg.cpp \
+					src/FeatureVector/FeatureVectorImg.h \
+					src/FeatureVector/FeatureVector.o \
+					src/FeatureVector/HOGImage.o
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) $< -o $@
+
+src/FeatureVector/FeatureVectorStd.o: 	src/FeatureVector/FeatureVectorStd.cpp \
+					src/FeatureVector/FeatureVectorStd.h \
+					src/FeatureVector/FeatureVector.o
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) $< -o $@
+
+src/FeatureVector/FeatureVectorHOG.o:	src/FeatureVector/FeatureVectorHOG.cpp \
+					src/FeatureVector/FeatureVectorHOG.h \
+					src/FeatureVector/HOGImage.o \
+					src/FeatureVector/FeatureVector.o
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) $< -o $@
+
+src/Examples/Examples.o: 	src/Examples/Examples.cpp  \
+				src/Examples/Examples.h \
+				src/FeatureVector/FeatureVector.o
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) $< -o $@
+
+src/Examples/ExamplesImg.o: 	src/Examples/ExamplesImg.cpp \
+				src/Examples/ExamplesImg.h \
+				src/Examples/Examples.o \
+				src/Examples/ExamplesStd.o \
+				src/FeatureVector/FeatureVectorImg.o
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) $< -o $@
+
+src/Examples/ExamplesStd.o: 	src/Examples/ExamplesStd.cpp \
+				src/Examples/ExamplesStd.h \
+				src/Examples/Examples.o
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) $< -o $@
+
+src/Model/Classifier.o: 	src/Model/Classifier.cpp \
+				src/Model/Classifier.h \
+				src/Examples/Examples.o
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) $< -o $@
+
+src/Model/ClassifierImg.o: 	src/Model/ClassifierImg.cpp \
+				src/Model/ClassifierImg.h \
+				src/Model/Classifier.o \
+				src/FeatureVector/FeatureVectorImg.o
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) $< -o $@
+
+src/Model/Trainer.o: 	src/Model/Trainer.cpp \
+			src/Model/Trainer.h \
+			src/Model/Classifier.o 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) $< -o $@
+
+src/Graphics/ui_ResultView.h: 	src/Graphics/ResultView.ui
+	$(UIC) $(UICFLAGS) $< -o $@
+
+src/Graphics/ResultView.o: 	src/Graphics/ResultView.cpp \
+				src/Graphics/ResultView.h \
+				src/Graphics/ui_ResultView.h \
+				src/Model/ClassifierImg.o
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) $< -o $@
+src/Model/Bootstraper.o:	src/Model/Bootstraper.cpp \
+				src/Model/Bootstraper.h \
+				src/Model/Trainer.o \
+				src/Examples/ExamplesImg.o \
+				src/FeatureVector/FeatureVectorHOG.o
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) $< -o $@
+
+src/main.o: 	src/main.cpp \
+		src/main.h \
+		src/Graphics/ResultView.o \
+		src/Model/Trainer.o \
+		src/Examples/ExamplesImg.o \
+		src/Model/Bootstraper.o \
+		src/Model/ClassifierImg.o
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) $< -o $@
+
+src/Graphics/moc_ResultView.o:	src/Graphics/moc_ResultView.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) $< -o $@
+
+src/Graphics/moc_ResultView.cpp:	src/Graphics/ResultView.h \
+					src/Graphics/ui_ResultView.h \
+					src/Model/ClassifierImg.o
+	$(MOC) $(INCPATH) $< -o $@
+
+bin/detector: $(OBJECTS)
+	$(LINK) $(LINKFLAGS) $(LIBS) $(OBJECTS) -o $@
+
+FeatureVector: 	src/FeatureVector/FeatureVector.o \
+		src/FeatureVector/FeatureVectorImg.o \
+		src/FeatureVector/FeatureVectorStd.o \
+		src/FeatureVector/FeatureVectorHOG.o
+	
+Examples: 	FeatureVector \
+		src/Examples/Examples.o \
+		src/Examples/ExamplesImg.o \
+		src/Examples/ExamplesStd.o
+	
+test: $(TESTS) 
+testFV: FeatureVector
+	$(LINK) $(LINKFLAGS) $(INCPATH) $(LIBS) src/FeatureVector/*.o tests/testFV.cpp -o bin/testFV
+testExamples: FeatureVector Examples
+	$(LINK) $(LINKFLAGS) $(INCPATH) $(LIBS) src/FeatureVector/*.o src/Examples/*.o tests/testExamples.cpp -o bin/testExamples
+clean:
+	@for bintest in $(TESTS); do \
+		rm -f bin/$$bintest; \
+	done
+	@for TARGET in $(TARGET) $(TGHEADERS) $(TGSOURSES) $(OBJECTS); do \
+		rm -f $$TARGET; \
+	done

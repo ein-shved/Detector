@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ResultView</class>
+ <widget class="QDialog" name="ResultView">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Detector</string>
+  </property>
+  <property name="whatsThis">
+   <string>This is a dialog for classifying an images.</string>
+  </property>
+  <property name="sizeGripEnabled">
+   <bool>false</bool>
+  </property>
+  <widget class="QGraphicsView" name="mainView">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>381</width>
+     <height>251</height>
+    </rect>
+   </property>
+   <property name="whatsThis">
+    <string>Here an images and founded pedestrians are shown</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnOpen">
+   <property name="geometry">
+    <rect>
+     <x>280</x>
+     <y>270</y>
+     <width>110</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="whatsThis">
+    <string>Open an image</string>
+   </property>
+   <property name="text">
+    <string>Open Image</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnClassifier">
+   <property name="geometry">
+    <rect>
+     <x>170</x>
+     <y>270</y>
+     <width>110</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="whatsThis">
+    <string>Open the classifier</string>
+   </property>
+   <property name="text">
+    <string>Open Classifier</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lblStatus">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>270</y>
+     <width>80</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="whatsThis">
+    <string>This show current status</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>btnOpen</sender>
+   <signal>clicked()</signal>
+   <receiver>ResultView</receiver>
+   <slot>onOpenImage()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>280</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>219</x>
+     <y>269</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnClassifier</sender>
+   <signal>clicked()</signal>
+   <receiver>ResultView</receiver>
+   <slot>onOpenClassifier()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>284</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>140</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>onOpenImage()</slot>
+  <slot>onOpenClassifier()</slot>
+ </slots>
+</ui>

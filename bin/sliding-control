@@ -1,0 +1,113 @@
+#!/bin/bash
+
+
+FILES_NEGATIVES=
+FILES_POSITIVES=
+
+NEGATIVES=$1
+POSITIVES=$2
+PARTS_NUMBER=4
+
+DEVIDED_PART=
+DEVIDED_OTHER=
+
+RES_POSITIVES=
+RES_NEGATIVES=
+
+NEGATIVES_NUMBER=0
+POSITIVES_NUMBER=0
+
+EXECUTED=./_detector
+SUMMARY_FILE=".summ"
+
+function devide {
+	DEVIDED_OTHER=
+	DEVIDED_PART=
+
+	local STEP_SIZE=$(( $2 / $PARTS_NUMBER ))
+	local STEP_BEGIN=$(( $STEP_SIZE * $3 ))
+	local STEP_END=$(( $STEP_BEGIN + $STEP_SIZE ))
+	local STEP_INDEX=0
+
+	for FILE in $1 
+	do
+		if [ $STEP_INDEX -lt $STEP_BEGIN ] || [ $STEP_INDEX -ge $STEP_END ]
+		then
+			DEVIDED_OTHER="$DEVIDED_OTHER $FILE"
+		else
+			DEVIDED_PART="$DEVIDED_PART $FILE"
+		fi
+		STEP_INDEX=$(( $STEP_INDEX + 1 ))
+	done
+}
+
+if [ -z "$NEGATIVES" ] || [ -z "$POSITIVES" ]
+then
+	exec >&2;
+	echo "USAGE: sliding-control NEGATIVES POSITIVES [PARTS_NUMBER]"
+	echo " where NEGATIVES & POSITIVES are directories"
+	exit 1;
+fi
+if [ -n "$3" ]
+then
+	PARTS_NUMBER=$3
+	if ! [[ "PARTS_NUMBER" =~ ^[0-9]+$ ]]
+	then
+		exec >&2;
+		echo "USAGE: sliding-control NEGATIVES POSITIVES [PARTS_NUMBER]"
+		echo "PARTS_NUMBER must be a number";
+		exit 1
+	fi
+fi
+if ! [ -d "$NEGATIVES" ] && [ -d "$POSITIVES" ]
+then
+	exec >&2;
+	echo "NEGATIVES & POSITIVES must be directories"
+	exit 1;
+fi
+
+for FILE in "$NEGATIVES"/*
+do
+	if [ -f "$FILE" ]
+	then
+		NEGATIVES_NUMBER=$(( $NEGATIVES_NUMBER + 1 ))
+		FILES_NEGATIVES="$FILES_NEGATIVES $FILE"
+	fi
+done
+for FILE in "$POSITIVES"/*
+do
+	if [ -f "$FILE" ]
+	then
+		POSITIVES_NUMBER=$(( $POSITIVES_NUMBER + 1 ))
+		FILES_POSITIVES="$FILES_POSITIVES $FILE"
+	fi
+done
+
+
+STEP=0
+while (( $STEP < $PARTS_NUMBER ))
+do
+	echo "Step $STEP in negative devision"
+	devide "$FILES_NEGATIVES" "$NEGATIVES_NUMBER" "$STEP"
+	$EXECUTED -f -s $SUMMARY_FILE -- $FILES_POSITIVES : $DEVIDED_OTHER : $DEVIDED_PART #>/dev/null
+	echo "Faults: `cat $SUMMARY_FILE`"
+	RES_NEGATIVES=$(( $RES_NEGATIVES + `cat $SUMMARY_FILE` ))
+	STEP=$(( $STEP + 1 ))
+done
+RES_NEGATIVES=$(( $RES_NEGATIVES / $PARTS_NUMBER ))
+
+STEP=0
+while (( $STEP < $PARTS_NUMBER ))
+do
+	echo "Step $STEP in positive devision"
+	devide "$FILES_POSITIVES" "$POSITIVES_NUMBER" "$STEP"
+	$EXECUTED -f -s $SUMMARY_FILE -- $DEVIDED_OTHER : $FILES_NEGATIVES : $DEVIDED_PART >/dev/null
+	RES_POSITIVES=$(( $RES_POSITIVES + `cat $SUMMARY_FILE` ))
+	echo "Faults: `cat $SUMMARY_FILE`"
+	STEP=$(( $STEP + 1 ))
+done
+rm $SUMMARY_FILE
+RES_POSITIVES=$(( $RES_POSITIVES / $PARTS_NUMBER ))
+
+echo "Faults in NEGATIVE sliding: $RES_NEGATIVES"
+echo "Faults in POSITIVE sliding: $(( $POSITIVES_NUMBER - $RES_NEGATIVES ))"
